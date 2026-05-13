@@ -1,0 +1,435 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.cs-frame{width:100%;aspect-ratio:16/10;min-height:580px;border-radius:12px;overflow:hidden;background:#0a0a0a;box-shadow:0 24px 60px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.06);position:relative}
+.cs-app{width:100%;height:100%;display:flex;flex-direction:column;background:#0e0c10;color:#F5F2EE;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;font-size:13px;overflow:hidden}
+.cs-mono{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace}
+.cs-icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;fill:currentColor;flex-shrink:0}
+.cs-icon-stroke{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+@keyframes cs-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(0.85)}}
+@keyframes cs-spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes cs-shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+@keyframes cs-fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.cs-live{display:inline-block;width:7px;height:7px;border-radius:50%;background:#FF8E80;animation:cs-pulse 1.6s infinite ease-in-out;flex-shrink:0}
+.cs-live-ok{background:#7DCB91}
+.cs-spinner{width:13px;height:13px;border:1.5px solid rgba(192,170,255,0.3);border-top-color:transparent;border-radius:50%;animation:cs-spin 0.9s linear infinite;display:inline-block;flex-shrink:0}
+.cs-skel{background:linear-gradient(90deg,rgba(255,255,255,0.04) 0%,rgba(255,255,255,0.04) 40%,rgba(255,255,255,0.09) 50%,rgba(255,255,255,0.04) 60%,rgba(255,255,255,0.04) 100%);background-size:600px 100%;animation:cs-shimmer 1.6s ease-in-out infinite;border-radius:6px}
+
+.cs-winbar{height:32px;background:#15131a;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cs-winbar span{font-size:12px;color:#827C75}
+
+/* KEY FIX: cs-body fills remaining height strictly */
+.cs-body{display:flex;flex:1;min-height:0;position:relative;overflow:hidden}
+.cs-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:25;cursor:pointer}
+
+/* SIDEBAR: flex column, strict height */
+.cs-sidebar{width:280px;background:#15131a;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width 0.3s ease}
+.cs-sbhead{padding:12px 14px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.cs-brand{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#C0AAFF,#8A6BFF);display:flex;align-items:center;justify-content:center;color:#1B181D;flex-shrink:0}
+.cs-search-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;margin:8px 10px;background:#1f1c22;border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;font-size:12px;color:#827C75;flex-shrink:0}
+.cs-filters{display:flex;gap:3px;padding:0 10px 8px;border-bottom:0.5px solid rgba(255,255,255,0.06);flex-shrink:0}
+.cs-filter{font-size:11px;padding:4px 9px;border-radius:6px;color:#827C75;cursor:pointer}
+.cs-filter.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
+/* KEY FIX: min-height:0 so flex child can shrink below its content size */
+.cs-incidents{flex:1;overflow-y:auto;padding:6px 6px 10px;min-height:0}
+.cs-incident{padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;border:0.5px solid transparent;transition:background 0.1s}
+.cs-incident:hover{background:#1f1c22}
+.cs-incident.selected{background:rgba(192,170,255,0.12);border-color:rgba(192,170,255,0.3)}
+.cs-incident-meta{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.cs-sev{font-size:10px;padding:1px 6px;border-radius:999px;font-weight:500;letter-spacing:0.3px}
+.cs-sev.critical{background:rgba(255,142,128,0.1);color:#FF8E80;border:0.5px solid rgba(255,142,128,0.3)}
+.cs-sev.high{background:rgba(244,188,101,0.1);color:#F4BC65;border:0.5px solid rgba(244,188,101,0.3)}
+.cs-sev.medium{background:rgba(125,203,145,0.1);color:#7DCB91;border:0.5px solid rgba(125,203,145,0.3)}
+.cs-sev.low{background:rgba(255,255,255,0.06);color:#827C75;border:0.5px solid rgba(255,255,255,0.08)}
+.cs-incident-time{font-size:10.5px;color:#827C75;margin-left:auto;font-family:monospace}
+.cs-incident-title{font-size:12px;line-height:1.35;color:#F5F2EE;margin-bottom:2px;font-weight:500}
+.cs-incident.selected .cs-incident-title{color:#C0AAFF}
+.cs-incident-snip{font-size:11px;line-height:1.35;color:#827C75;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* KEY FIX: flex-shrink:0 keeps footer pinned */
+.cs-sbfoot{padding:10px 12px;border-top:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:9px;flex-shrink:0;background:#15131a}
+
+/* MAIN CHAT: flex column, strict height */
+.cs-main{flex:1;min-width:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#1B181D 0%,#181519 100%);overflow:hidden}
+.cs-chathead{padding:11px 22px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.cs-chathead-sev{font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(255,142,128,0.1);color:#FF8E80;border:0.5px solid rgba(255,142,128,0.3);font-weight:500;letter-spacing:0.3px;flex-shrink:0}
+.cs-chathead-title{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs-chathead-meta{font-size:11px;color:#827C75;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;white-space:nowrap}
+.cs-menu-btn{display:none}
+/* KEY FIX: min-height:0 so chat scroll can shrink */
+.cs-chat-scroll{flex:1;overflow-y:auto;padding:22px 22px 26px;min-height:0}
+.cs-chat-inner{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.cs-msg{display:flex;gap:10px;animation:cs-fadein 0.35s ease both}
+.cs-msg.user{justify-content:flex-end}
+.cs-msg.hidden{display:none}
+.cs-ai-avatar{flex-shrink:0;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#C0AAFF,#8A6BFF);display:flex;align-items:center;justify-content:center;color:#1B181D;font-size:13px}
+.cs-msg-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px;padding-top:2px}
+.cs-msg-text{font-size:13px;line-height:1.65;color:#C5BFB9}
+.cs-msg-text strong{font-weight:500;color:#F5F2EE}
+.cs-msg-text .num{font-family:monospace;color:#F5F2EE;font-size:12.5px}
+.cs-msg-text .pop{color:#C0AAFF;font-family:monospace;font-size:12px}
+.cs-user-msg{max-width:480px;padding:9px 13px;background:#2E2A32;border:0.5px solid rgba(255,255,255,0.08);border-radius:12px;font-size:13px;color:#F5F2EE;line-height:1.5}
+.cs-card{background:#1f1c22;border:0.5px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px}
+.cs-chart-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px}
+.cs-chart-label{font-size:11px;color:#827C75;letter-spacing:0.3px}
+.cs-chart-val{font-size:15px;font-weight:500;color:#FF8E80;font-family:monospace;display:inline-flex;align-items:center;gap:6px}
+.cs-actions{display:flex;gap:7px;flex-wrap:wrap}
+.cs-action{font-size:12px;padding:7px 11px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s}
+.cs-action-urgent{background:#FF8E80;border:0.5px solid #FF8E80;color:#1B181D;font-weight:500}
+.cs-action-sec{background:transparent;border:0.5px solid rgba(255,255,255,0.15);color:#C5BFB9}
+.cs-suggestions{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.cs-sug{font-size:11.5px;padding:5px 10px;background:transparent;border:0.5px solid rgba(255,255,255,0.1);border-radius:999px;cursor:pointer;color:#C5BFB9;transition:all 0.15s;user-select:none}
+.cs-sug:hover{background:rgba(192,170,255,0.08);color:#C0AAFF;border-color:rgba(192,170,255,0.3)}
+.cs-sug.primary{border-color:rgba(192,170,255,0.35);color:#D4C2FF;background:rgba(192,170,255,0.04)}
+.cs-sug.primary:hover{background:rgba(192,170,255,0.14);color:#C0AAFF}
+.cs-sug.used{opacity:0.4;cursor:default;pointer-events:none}
+.cs-ev-row{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;line-height:1.55}
+.cs-ev-num{flex-shrink:0;width:18px;height:18px;border-radius:50%;background:rgba(192,170,255,0.14);color:#C0AAFF;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.cs-ev-text{color:#C5BFB9}
+.cs-ev-text strong{font-weight:500;color:#F5F2EE}
+.cs-counter{background:rgba(244,188,101,0.05);border:0.5px solid rgba(244,188,101,0.25);border-radius:9px;overflow:hidden}
+.cs-counter-head{padding:9px 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#F4BC65;font-weight:500;cursor:pointer;user-select:none}
+.cs-counter-chev{margin-left:auto;display:inline-flex;transition:transform 0.25s}
+.cs-counter.expanded .cs-counter-chev{transform:rotate(180deg)}
+.cs-counter-body{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+.cs-counter.expanded .cs-counter-body{max-height:300px}
+.cs-counter-inner{padding:0 12px 11px}
+.cs-counter-item{font-size:12px;color:#C5BFB9;line-height:1.6;padding:9px 0;border-top:0.5px solid rgba(244,188,101,0.18)}
+.cs-counter-item:first-child{padding-top:3px;border-top:none}
+.cs-counter-item strong{color:#F4BC65;font-weight:500}
+.cs-panel-hint{background:rgba(192,170,255,0.06);border:0.5px solid rgba(192,170,255,0.2);border-radius:8px;padding:7px 11px;font-size:11.5px;color:#C0AAFF;display:inline-flex;align-items:center;gap:6px;width:fit-content}
+/* KEY FIX: flex-shrink:0 keeps input pinned */
+.cs-input-area{padding:11px 22px 15px;border-top:0.5px solid rgba(255,255,255,0.06);background:#1B181D;flex-shrink:0}
+.cs-input-inner{max-width:680px;margin:0 auto}
+.cs-input-box{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#252127;border:0.5px solid rgba(255,255,255,0.12);border-radius:13px}
+.cs-input-placeholder{flex:1;font-size:13px;color:#827C75;font-style:italic}
+.cs-input-btn{width:27px;height:27px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;flex-shrink:0}
+.cs-input-send{background:#C0AAFF;color:#1B181D}
+
+/* ACTIVITY PANEL: flex column, strict height */
+.cs-right{flex-shrink:0;width:0;overflow:hidden;transition:width 0.45s cubic-bezier(0.32,0.72,0,1),border-color 0.45s;background:#1f1c22;border-left:0.5px solid rgba(255,255,255,0)}
+.cs-right.open{border-left-color:rgba(255,255,255,0.06)}
+.cs-right-inner{width:280px;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.cs-right-head{padding:11px 14px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:11.5px;font-weight:500;display:flex;align-items:center;gap:7px;letter-spacing:0.3px;flex-shrink:0}
+/* KEY FIX: min-height:0 on the feed scroll area */
+.cs-feed-scroll{flex:1;overflow-y:auto;padding:5px 0;min-height:0}
+.cs-feed-entry{padding:9px 13px;display:flex;gap:9px;font-size:11.5px}
+.cs-feed-entry.aged{opacity:0.55}
+.cs-feed-icon{flex-shrink:0;width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:#C0AAFF}
+.cs-feed-time{font-size:10.5px;color:#827C75;margin-top:2px;font-family:monospace}
+/* KEY FIX: flex-shrink:0 keeps right footer pinned */
+.cs-right-foot{padding:11px 14px;border-top:0.5px solid rgba(255,255,255,0.06);font-size:12.5px;color:#C0AAFF;display:flex;justify-content:space-between;align-items:center;background:rgba(192,170,255,0.08);cursor:pointer;flex-shrink:0}
+
+/* MEDIUM mode sidebar */
+.cs-medium-nav{display:none;flex-direction:column;align-items:center;gap:4px;padding:8px 0;flex:1;overflow:hidden}
+.cs-nav-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;font-size:18px;position:relative;flex-shrink:0}
+.cs-nav-icon.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
+.cs-nav-badge{position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#FF8E80;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600}
+.cs-toolbtn{width:27px;height:27px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;flex-shrink:0;transition:background 0.15s}
+.cs-toolbtn:hover{background:rgba(255,255,255,0.05);color:#C5BFB9}
+.cs-toolbtn.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
+.cs-avatar-user{width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#F4BC65,#D89020);display:flex;align-items:center;justify-content:center;color:#1B181D;font-size:11px;font-weight:500;flex-shrink:0}
+
+/* BREAKPOINT: medium */
+.cs-frame.cs-medium .cs-sidebar{width:58px}
+.cs-frame.cs-medium .cs-sbhead{justify-content:center;padding:11px}
+.cs-frame.cs-medium .cs-sbname,.cs-frame.cs-medium .cs-sbsub,.cs-frame.cs-medium .cs-search-bar,.cs-frame.cs-medium .cs-filters,.cs-frame.cs-medium .cs-incidents,.cs-frame.cs-medium .cs-sbfoot-text{display:none}
+.cs-frame.cs-medium .cs-sbfoot{justify-content:center;padding:9px}
+.cs-frame.cs-medium .cs-medium-nav{display:flex}
+.cs-frame.cs-medium .cs-chathead-meta{display:none}
+.cs-frame.cs-medium .cs-right-inner{width:250px}
+.cs-frame.cs-medium .cs-right.open{width:250px}
+/* BREAKPOINT: compact */
+.cs-frame.cs-compact .cs-sidebar{width:0}
+.cs-frame.cs-compact .cs-sidebar.drawer-open{width:280px;position:absolute;top:0;bottom:0;left:0;z-index:30;box-shadow:4px 0 28px rgba(0,0,0,0.6)}
+.cs-frame.cs-compact .cs-overlay{display:block}
+.cs-frame.cs-compact .cs-right.open{position:absolute;top:0;bottom:0;right:0;z-index:20;box-shadow:-4px 0 24px rgba(0,0,0,0.5)}
+.cs-frame.cs-compact .cs-menu-btn{display:inline-flex}
+.cs-frame.cs-compact .cs-chathead-meta{display:none}
+.cs-frame.cs-compact .cs-chat-inner{max-width:100%}
+/* BREAKPOINT: full */
+.cs-frame.cs-full .cs-right.open{width:280px}
+</style>
+
+<svg style="position:absolute;width:0;height:0" aria-hidden="true"><defs>
+<symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 1.5l2 7.5 7.5 2-7.5 2-2 7.5-2-7.5-7.5-2 7.5-2z M19 14l.7 2.3 2.3.7-2.3.7L19 20l-.7-2.3L16 17l2.3-.7z"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 5 3.4 9.5 8 10 4.6-.5 8-5 8-10V6l-8-4z"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+<symbol id="i-db-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5.5" rx="9" ry="3"/><path d="M3 5.5v13c0 1.66 4.03 3 9 3s9-1.34 9-3v-13"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/><path d="M13.5 9l-4 5.5h4.5l-4 5"/></symbol>
+<symbol id="i-key" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="m17 6 3 3"/><path d="m15 8 3 3"/></symbol>
+<symbol id="i-warning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-clip" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.4 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></symbol>
+<symbol id="i-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></symbol>
+<symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></symbol>
+<symbol id="i-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></symbol>
+<symbol id="i-trend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+<symbol id="i-cluster" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M7.5 7.5 10.5 10.5M16.5 7.5 13.5 10.5M10.5 13.5 7.5 16.5M13.5 13.5 16.5 16.5"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/><path d="m15 5 3 3"/></symbol>
+<symbol id="i-bolt" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></symbol>
+<symbol id="i-notes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M15 4v16"/></symbol>
+<symbol id="i-incidents" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+</defs></svg>
+
+<div class="cs-frame" id="cs-frame">
+<div class="cs-app">
+
+  <div class="cs-winbar"><span>SecOps</span></div>
+
+  <div class="cs-body">
+    <div class="cs-overlay" id="cs-overlay" onclick="csCloseAll()"></div>
+
+    <aside class="cs-sidebar" id="cs-sidebar">
+      <div class="cs-sbhead">
+        <div class="cs-brand"><svg class="cs-icon" style="width:15px;height:15px;color:#1B181D"><use href="#i-shield"/></svg></div>
+        <div style="flex:1;min-width:0">
+          <div class="cs-sbname" style="font-size:13px;font-weight:500">SecOps</div>
+          <div class="cs-sbsub" style="font-size:11px;color:#827C75;margin-top:1px">Tier 2 console</div>
+        </div>
+      </div>
+      <div class="cs-medium-nav">
+        <div class="cs-nav-icon active" title="Incidents"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-incidents"/></svg><span class="cs-nav-badge">3</span></div>
+        <div class="cs-nav-icon" title="Search"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-search"/></svg></div>
+        <div class="cs-nav-icon" title="Reports"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-chart"/></svg></div>
+        <div class="cs-nav-icon" title="Runbooks"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-book"/></svg></div>
+      </div>
+      <div class="cs-search-bar"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-search"/></svg><span style="flex:1;font-style:italic">Search incidents...</span><span class="cs-mono" style="padding:1px 5px;background:#2E2A32;border:0.5px solid rgba(255,255,255,0.08);border-radius:4px;font-size:10.5px;color:#827C75">⌘K</span></div>
+      <div class="cs-filters"><span class="cs-filter active">All · 6</span><span class="cs-filter">Active · 3</span><span class="cs-filter">Resolved</span></div>
+      <div class="cs-incidents">
+        <div class="cs-incident selected"><div class="cs-incident-meta"><span class="cs-sev critical">Critical</span><span class="cs-live"></span><span class="cs-incident-time">14m</span></div><div class="cs-incident-title">Suspected credential compromise · fileserver-03</div><div class="cs-incident-snip">n.zuk's account exfiltrating data from finance share to external endpoint...</div></div>
+        <div class="cs-incident"><div class="cs-incident-meta"><span class="cs-sev high">High</span><span class="cs-incident-time">2h</span></div><div class="cs-incident-title">Anomalous API rate from /admin endpoint</div><div class="cs-incident-snip">Single service account hitting admin API 40x normal rate, source AS unrecognized</div></div>
+        <div class="cs-incident"><div class="cs-incident-meta"><span class="cs-sev medium">Medium</span><span class="cs-incident-time">4h</span></div><div class="cs-incident-title">Failed login burst · corporate VPN</div><div class="cs-incident-snip">~200 failed auth attempts across 14 users in 8 minutes, all from same internal subnet</div></div>
+        <div class="cs-incident"><div class="cs-incident-meta"><span class="cs-sev low">Low</span><span class="cs-incident-time">1d</span></div><div class="cs-incident-title">Data classification mismatch · S3</div><div class="cs-incident-snip">Bucket labeled "public" contains files tagged confidential, awaiting owner review</div></div>
+        <div class="cs-incident" style="opacity:0.6"><div class="cs-incident-meta"><span class="cs-sev medium">Resolved</span><span class="cs-incident-time">2d</span></div><div class="cs-incident-title">Suspicious DNS pattern · marketing host</div><div class="cs-incident-snip">DGA-like queries, host quarantined</div></div>
+        <div class="cs-incident" style="opacity:0.6"><div class="cs-incident-meta"><span class="cs-sev high">Resolved</span><span class="cs-incident-time">3d</span></div><div class="cs-incident-title">Possible phishing campaign · 23 users</div><div class="cs-incident-snip">Spoofed CFO email, 2 users clicked, mailbox rules cleaned</div></div>
+      </div>
+      <div class="cs-sbfoot">
+        <div class="cs-avatar-user">JL</div>
+        <div class="cs-sbfoot-text" style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:500">J. Lee</div>
+          <div style="font-size:10.5px;color:#827C75">on-call · 2 active</div>
+        </div>
+        <div class="cs-toolbtn" style="margin-left:auto"><svg class="cs-icon-stroke" style="width:14px;height:14px"><use href="#i-settings"/></svg></div>
+      </div>
+    </aside>
+
+    <main class="cs-main">
+      <div class="cs-chathead">
+        <div class="cs-toolbtn cs-menu-btn" onclick="csOpenSidebar()"><svg class="cs-icon-stroke" style="width:16px;height:16px"><use href="#i-menu"/></svg></div>
+        <span class="cs-chathead-sev">Critical</span>
+        <span class="cs-chathead-title">Suspected credential compromise · fileserver-03</span>
+        <span class="cs-chathead-meta"><span class="cs-mono">INC-2847</span>&nbsp;<span style="opacity:0.5">·</span>&nbsp;14m ago</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:8px;color:#827C75">
+          <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px"><span class="cs-live"></span>live</span>
+          <div class="cs-toolbtn" id="cs-panel-btn" onclick="csTogglePanel()"><svg class="cs-icon-stroke" style="width:15px;height:15px"><use href="#i-panel"/></svg></div>
+          <div class="cs-toolbtn"><svg class="cs-icon" style="width:15px;height:15px"><use href="#i-dots"/></svg></div>
+        </div>
+      </div>
+
+      <div class="cs-chat-scroll" id="cs-scroll">
+        <div class="cs-chat-inner">
+
+          <div class="cs-msg" id="msg-1">
+            <div class="cs-ai-avatar"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-sparkle"/></svg></div>
+            <div class="cs-msg-body">
+              <div class="cs-msg-text"><span class="num">247 MB</span> exfiltrated from <strong>fileserver-03</strong> since 14:14 and climbing. Source is <strong>n.zuk's</strong> account, originating from a Tor exit node first seen in our logs today.</div>
+              <div class="cs-card">
+                <div class="cs-chart-head"><span class="cs-chart-label">Outbound TLS to suspicious endpoint</span><span class="cs-chart-val">247 MB <span class="cs-live"></span></span></div>
+                <svg viewBox="0 0 700 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100px;display:block">
+                  <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF8E80" stop-opacity="0.4"/><stop offset="100%" stop-color="#FF8E80" stop-opacity="0"/></linearGradient></defs>
+                  <line x1="20" y1="82" x2="680" y2="82" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                  <text x="20" y="95" font-size="10" fill="#827C75" font-family="ui-sans-serif">14:14</text><text x="680" y="95" font-size="10" fill="#827C75" font-family="ui-sans-serif" text-anchor="end">14:20</text>
+                  <path d="M 20 82 Q 100 80 130 77 Q 200 71 240 62 Q 310 49 350 36 Q 420 18 460 12 Q 530 8 570 10 Q 640 13 680 14 L 680 82 L 20 82 Z" fill="url(#cg)"/>
+                  <path d="M 20 82 Q 100 80 130 77 Q 200 71 240 62 Q 310 49 350 36 Q 420 18 460 12 Q 530 8 570 10 Q 640 13 680 14" fill="none" stroke="#FF8E80" stroke-width="2"/>
+                  <circle cx="680" cy="14" r="5" fill="#FF8E80" stroke="#1B181D" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="cs-card" style="padding:11px 13px">
+                <div style="font-size:11px;color:#827C75;letter-spacing:0.3px;margin-bottom:9px">Attack path</div>
+                <svg viewBox="0 0 700 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+                  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#FF8E80"/></marker></defs>
+                  <rect x="0" y="14" width="146" height="42" rx="8" fill="rgba(255,142,128,0.1)" stroke="rgba(255,142,128,0.4)" stroke-width="0.5"/><text x="73" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">185.220.xxx</text><text x="73" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" opacity="0.8" font-family="ui-sans-serif">Tor exit · external</text>
+                  <line x1="152" y1="35" x2="196" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="174" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">SSH</text>
+                  <rect x="202" y="14" width="116" height="42" rx="8" fill="rgba(244,188,101,0.12)" stroke="rgba(244,188,101,0.4)" stroke-width="0.5"/><text x="260" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FCD89A" font-family="ui-sans-serif">n.zuk</text><text x="260" y="47" text-anchor="middle" font-size="9.5" fill="#F4BC65" opacity="0.8" font-family="ui-sans-serif">user account</text>
+                  <line x1="324" y1="35" x2="368" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="346" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">SMB</text>
+                  <rect x="374" y="14" width="140" height="42" rx="8" fill="rgba(255,142,128,0.1)" stroke="rgba(255,142,128,0.4)" stroke-width="0.5"/><text x="444" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">fileserver-03</text><text x="444" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" opacity="0.8" font-family="ui-sans-serif">finance share</text>
+                  <line x1="520" y1="35" x2="564" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="542" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">TLS</text>
+                  <rect x="570" y="14" width="130" height="42" rx="8" fill="rgba(255,142,128,0.15)" stroke="rgba(255,142,128,0.6)" stroke-width="0.5"/><text x="635" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">External endpoint</text><text x="635" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">live · receiving</text>
+                </svg>
+              </div>
+              <div class="cs-msg-text"><span class="pop">82%</span> confident the credentials are stolen. Recommend isolating fileserver-03 before remediating the account — the bytes counter is the bigger problem right now.</div>
+              <div class="cs-actions">
+                <div class="cs-action cs-action-urgent"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-db-bolt"/></svg>Isolate fileserver-03</div>
+                <div class="cs-action cs-action-sec"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-key"/></svg>Reset n.zuk password</div>
+              </div>
+              <div class="cs-suggestions">
+                <div class="cs-sug primary" id="t1" onclick="csTriggerConfidence()">Why are you confident?</div>
+                <div class="cs-sug">Show me the timeline</div>
+                <div class="cs-sug">What's the alternative?</div>
+                <div class="cs-sug">Who else accesses this host?</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cs-msg user hidden" id="mu1"><div class="cs-user-msg">Why are you confident?</div></div>
+          <div class="cs-msg hidden" id="sk1">
+            <div style="flex-shrink:0;width:26px;height:26px;border-radius:50%" class="cs-skel"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:9px;padding-top:2px">
+              <div class="cs-skel" style="height:13px;width:88%"></div><div class="cs-skel" style="height:13px;width:64%"></div>
+              <div class="cs-skel" style="height:90px;width:100%;border-radius:9px"></div>
+              <div class="cs-skel" style="height:13px;width:78%"></div><div class="cs-skel" style="height:13px;width:50%"></div>
+            </div>
+          </div>
+          <div class="cs-msg hidden" id="ma2">
+            <div class="cs-ai-avatar"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-sparkle"/></svg></div>
+            <div class="cs-msg-body">
+              <div class="cs-msg-text">Three indicators.</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div class="cs-ev-row"><div class="cs-ev-num">1</div><div class="cs-ev-text"><strong>Origin.</strong> <span class="num">185.220.xxx</span> is a Tor exit node. No prior appearance in our logs.</div></div>
+                <div class="cs-ev-row"><div class="cs-ev-num">2</div><div class="cs-ev-text"><strong>Time of day.</strong> 14:08 UTC is 22:08 local. n.zuk has 47 prior accesses to this host — all during business hours.</div></div>
+              </div>
+              <div class="cs-card" style="padding:11px">
+                <div style="font-size:11px;color:#827C75;letter-spacing:0.3px;margin-bottom:8px">n.zuk's 90-day access history · hour of day</div>
+                <svg viewBox="0 0 660 86" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
+                  <line x1="20" y1="60" x2="640" y2="60" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                  <rect x="250" y="12" width="200" height="48" fill="rgba(192,170,255,0.06)"/>
+                  <text x="350" y="26" font-size="10" fill="#C0AAFF" text-anchor="middle" font-family="ui-sans-serif" font-style="italic">business hours</text>
+                  <text x="20" y="76" font-size="10" fill="#827C75" font-family="ui-sans-serif">00:00</text><text x="350" y="76" font-size="10" fill="#827C75" text-anchor="middle" font-family="ui-sans-serif">12:00</text><text x="640" y="76" font-size="10" fill="#827C75" text-anchor="end" font-family="ui-sans-serif">23:59</text>
+                  <g fill="#C5BFB9" opacity="0.5"><circle cx="262" cy="52" r="2.5"/><circle cx="278" cy="46" r="2.5"/><circle cx="292" cy="54" r="2.5"/><circle cx="308" cy="50" r="2.5"/><circle cx="324" cy="42" r="2.5"/><circle cx="336" cy="52" r="2.5"/><circle cx="350" cy="46" r="2.5"/><circle cx="364" cy="54" r="2.5"/><circle cx="378" cy="48" r="2.5"/><circle cx="392" cy="52" r="2.5"/><circle cx="268" cy="42" r="2.5"/><circle cx="288" cy="56" r="2.5"/><circle cx="304" cy="44" r="2.5"/><circle cx="318" cy="54" r="2.5"/><circle cx="338" cy="42" r="2.5"/><circle cx="362" cy="50" r="2.5"/><circle cx="376" cy="46" r="2.5"/><circle cx="394" cy="50" r="2.5"/><circle cx="410" cy="44" r="2.5"/><circle cx="430" cy="48" r="2.5"/></g>
+                  <circle cx="556" cy="30" r="5.5" fill="#FF8E80" stroke="#1B181D" stroke-width="2"/>
+                  <text x="556" y="16" font-size="10" fill="#FF8E80" text-anchor="middle" font-family="ui-sans-serif" font-weight="500">today · 22:08</text>
+                </svg>
+              </div>
+              <div class="cs-ev-row"><div class="cs-ev-num">3</div><div class="cs-ev-text"><strong>Volume and speed.</strong> <span class="num">18 MB</span> read in 4 seconds. Their typical sessions read &lt; 50 MB across hours.</div></div>
+              <div class="cs-counter" id="c1">
+                <div class="cs-counter-head" onclick="csToggleCounter('c1')">
+                  <svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-warning"/></svg>
+                  <span>2 signals run counter to this read</span>
+                  <span class="cs-counter-chev"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-chevron"/></svg></span>
+                </div>
+                <div class="cs-counter-body"><div class="cs-counter-inner">
+                  <div class="cs-counter-item"><strong>MFA passed cleanly at 14:03.</strong> Session tokens persist after MFA, so a hijacked post-MFA session would look identical.</div>
+                  <div class="cs-counter-item"><strong>47 prior accesses to fileserver-03.</strong> A baseline exists, but today's pattern doesn't match on volume, time of day, or paths touched.</div>
+                </div></div>
+              </div>
+              <div class="cs-suggestions">
+                <div class="cs-sug primary" id="t2" onclick="csTriggerActivity()">What else are you checking?</div>
+                <div class="cs-sug">Show the raw log</div>
+                <div class="cs-sug">Compare to INC-2691</div>
+                <div class="cs-sug">What if I'm wrong?</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="cs-msg user hidden" id="mu2"><div class="cs-user-msg">What else are you checking?</div></div>
+          <div class="cs-msg hidden" id="sk2">
+            <div style="flex-shrink:0;width:26px;height:26px;border-radius:50%" class="cs-skel"></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:9px;padding-top:2px">
+              <div class="cs-skel" style="height:13px;width:90%"></div><div class="cs-skel" style="height:13px;width:72%"></div><div class="cs-skel" style="height:13px;width:55%"></div>
+            </div>
+          </div>
+          <div class="cs-msg hidden" id="ma3">
+            <div class="cs-ai-avatar"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-sparkle"/></svg></div>
+            <div class="cs-msg-body">
+              <div class="cs-msg-text">Six checks since 14:00. Three still running — endpoint reputation, token issuance audit, and a lookup for similar patterns in past incidents. Pulling them up.</div>
+              <div class="cs-panel-hint"><svg class="cs-icon-stroke" style="width:12px;height:12px"><use href="#i-panel"/></svg><span>Activity panel opened</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="cs-input-area">
+        <div class="cs-input-inner">
+          <div class="cs-input-box">
+            <div class="cs-input-placeholder">Reply...</div>
+            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+              <div class="cs-input-btn"><svg class="cs-icon-stroke" style="width:14px;height:14px"><use href="#i-clip"/></svg></div>
+              <div class="cs-input-btn cs-input-send"><svg class="cs-icon-stroke" style="width:14px;height:14px"><use href="#i-arrow-up"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <aside class="cs-right" id="cs-right">
+      <div class="cs-right-inner">
+        <div class="cs-right-head"><span class="cs-live cs-live-ok"></span>Activity<span style="margin-left:auto;color:#827C75;font-weight:400">live</span></div>
+        <div class="cs-feed-scroll">
+          <div class="cs-feed-entry"><div class="cs-feed-icon"><span class="cs-spinner"></span></div><div style="flex:1"><div style="line-height:1.45">Checking endpoint reputation for <span class="cs-mono" style="font-size:10.5px;color:#C5BFB9">185.220.xxx</span></div><div class="cs-feed-time">now</div></div></div>
+          <div class="cs-feed-entry"><div class="cs-feed-icon" style="color:#7DCB91"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-trend"/></svg></div><div style="flex:1"><div style="line-height:1.45">Confidence rose to <span style="font-weight:500;color:#C0AAFF">82%</span></div><div style="color:#827C75;font-size:11px;margin-top:2px">geo mismatch confirmed</div><div class="cs-feed-time">30s ago</div></div></div>
+          <div class="cs-feed-entry"><div class="cs-feed-icon"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-cluster"/></svg></div><div style="flex:1"><div style="line-height:1.45">Clustered 5 events into Lateral movement</div><div class="cs-feed-time">1m ago</div></div></div>
+          <div class="cs-feed-entry"><div class="cs-feed-icon" style="color:#F4BC65"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-warning"/></svg></div><div style="flex:1"><div style="line-height:1.45">Surfaced 2 contradicting signals</div><div style="color:#827C75;font-size:11px;margin-top:2px">MFA passed, prior access</div><div class="cs-feed-time">2m ago</div></div></div>
+          <div class="cs-feed-entry aged"><div class="cs-feed-icon"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-target"/></svg></div><div style="flex:1"><div style="line-height:1.45">Hypothesis: lateral movement → exfil</div><div class="cs-feed-time">4m ago</div></div></div>
+          <div class="cs-feed-entry aged"><div class="cs-feed-icon"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-pencil"/></svg></div><div style="flex:1"><div style="line-height:1.45">Drafted 3 suggested actions</div><div class="cs-feed-time">5m ago</div></div></div>
+          <div class="cs-feed-entry aged"><div class="cs-feed-icon" style="color:#FF8E80"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-bolt"/></svg></div><div style="flex:1"><div style="line-height:1.45">Incident triggered</div><div class="cs-feed-time">14m ago</div></div></div>
+        </div>
+        <div class="cs-right-foot"><span style="display:inline-flex;align-items:center;gap:6px"><svg class="cs-icon-stroke" style="width:14px;height:14px"><use href="#i-notes"/></svg>Investigation draft</span><svg class="cs-icon-stroke" style="width:12px;height:12px"><use href="#i-arrow-right"/></svg></div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+</div>
+
+<script>
+(function(){
+  const frame=document.getElementById('cs-frame');
+  function applyBP(){
+    const w=frame.offsetWidth;
+    frame.classList.toggle('cs-compact',w<720);
+    frame.classList.toggle('cs-medium',w>=720&&w<1060);
+    frame.classList.toggle('cs-full',w>=1060);
+    const r=document.getElementById('cs-right');
+    if(r.classList.contains('open')){
+      if(w<720) r.style.width='';
+      else if(w<1060) r.style.width='250px';
+      else r.style.width='280px';
+    }
+  }
+  new ResizeObserver(applyBP).observe(frame);
+  applyBP();
+
+  function scrollDown(){const s=document.getElementById('cs-scroll');if(s)s.scrollTop=s.scrollHeight}
+  window.csOpenSidebar=function(){document.getElementById('cs-sidebar').classList.add('drawer-open');document.getElementById('cs-overlay').classList.add('active')};
+  window.csCloseAll=function(){document.getElementById('cs-sidebar').classList.remove('drawer-open');document.getElementById('cs-overlay').classList.remove('active')};
+  window.csTogglePanel=function(){
+    const p=document.getElementById('cs-right'),b=document.getElementById('cs-panel-btn'),opening=!p.classList.contains('open');
+    p.classList.toggle('open');b.classList.toggle('active',p.classList.contains('open'));
+    if(opening){
+      const w=frame.offsetWidth;
+      p.style.width=w>=1060?'280px':w>=720?'250px':'';
+      if(w<720)document.getElementById('cs-overlay').classList.add('active');
+    } else {
+      p.style.width='';
+      if(frame.classList.contains('cs-compact'))document.getElementById('cs-overlay').classList.remove('active');
+    }
+  };
+  window.csToggleCounter=function(id){document.getElementById(id).classList.toggle('expanded')};
+  window.csTriggerConfidence=function(){
+    const t=document.getElementById('t1');if(t.classList.contains('used'))return;t.classList.add('used');
+    document.getElementById('mu1').classList.remove('hidden');scrollDown();
+    document.getElementById('sk1').classList.remove('hidden');setTimeout(scrollDown,30);
+    setTimeout(function(){document.getElementById('sk1').classList.add('hidden');document.getElementById('ma2').classList.remove('hidden');setTimeout(scrollDown,30)},1800);
+  };
+  window.csTriggerActivity=function(){
+    const t=document.getElementById('t2');if(t.classList.contains('used'))return;t.classList.add('used');
+    document.getElementById('mu2').classList.remove('hidden');scrollDown();
+    document.getElementById('sk2').classList.remove('hidden');setTimeout(scrollDown,30);
+    setTimeout(function(){
+      document.getElementById('sk2').classList.add('hidden');document.getElementById('ma3').classList.remove('hidden');setTimeout(scrollDown,30);
+      setTimeout(function(){
+        const p=document.getElementById('cs-right'),b=document.getElementById('cs-panel-btn');
+        p.classList.add('open');b.classList.add('active');
+        const w=frame.offsetWidth;
+        p.style.width=w>=1060?'280px':w>=720?'250px':'';
+        if(w<720)document.getElementById('cs-overlay').classList.add('active');
+      },900);
+    },1400);
+  };
+})();
+</script>
