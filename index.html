@@ -1,7 +1,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-.cs-frame{width:100%;aspect-ratio:16/10;min-height:580px;border-radius:12px;overflow:hidden;background:#0a0a0a;box-shadow:0 24px 60px rgba(0,0,0,0.5),0 0 0 0.5px rgba(255,255,255,0.06);position:relative}
-.cs-app{width:100%;height:100%;display:flex;flex-direction:column;background:#0e0c10;color:#F5F2EE;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;font-size:13px;overflow:hidden}
+.cs-frame{width:100%;height:100vh;min-height:500px;background:#0e0c10;color:#F5F2EE;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden}
 .cs-mono{font-family:'JetBrains Mono','SF Mono',ui-monospace,monospace}
 .cs-icon{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;fill:currentColor;flex-shrink:0}
 .cs-icon-stroke{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
@@ -17,20 +16,17 @@
 .cs-winbar{height:32px;background:#15131a;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .cs-winbar span{font-size:12px;color:#827C75}
 
-/* KEY FIX: cs-body fills remaining height strictly */
-.cs-body{display:flex;flex:1;min-height:0;position:relative;overflow:hidden}
+.cs-body{flex:1;min-height:0;display:flex;overflow:hidden;position:relative}
 .cs-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:25;cursor:pointer}
 
-/* SIDEBAR: flex column, strict height */
-.cs-sidebar{width:280px;background:#15131a;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width 0.3s ease}
+.cs-sidebar{width:280px;flex-shrink:0;background:#15131a;border-right:0.5px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;overflow:hidden;transition:width 0.3s ease}
 .cs-sbhead{padding:12px 14px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
 .cs-brand{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#C0AAFF,#8A6BFF);display:flex;align-items:center;justify-content:center;color:#1B181D;flex-shrink:0}
 .cs-search-bar{display:flex;align-items:center;gap:8px;padding:8px 10px;margin:8px 10px;background:#1f1c22;border:0.5px solid rgba(255,255,255,0.08);border-radius:8px;font-size:12px;color:#827C75;flex-shrink:0}
 .cs-filters{display:flex;gap:3px;padding:0 10px 8px;border-bottom:0.5px solid rgba(255,255,255,0.06);flex-shrink:0}
 .cs-filter{font-size:11px;padding:4px 9px;border-radius:6px;color:#827C75;cursor:pointer}
 .cs-filter.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
-/* KEY FIX: min-height:0 so flex child can shrink below its content size */
-.cs-incidents{flex:1;overflow-y:auto;padding:6px 6px 10px;min-height:0}
+.cs-incidents{flex:1;min-height:0;overflow-y:auto;padding:6px 6px 10px}
 .cs-incident{padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;border:0.5px solid transparent;transition:background 0.1s}
 .cs-incident:hover{background:#1f1c22}
 .cs-incident.selected{background:rgba(192,170,255,0.12);border-color:rgba(192,170,255,0.3)}
@@ -44,18 +40,20 @@
 .cs-incident-title{font-size:12px;line-height:1.35;color:#F5F2EE;margin-bottom:2px;font-weight:500}
 .cs-incident.selected .cs-incident-title{color:#C0AAFF}
 .cs-incident-snip{font-size:11px;line-height:1.35;color:#827C75;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-/* KEY FIX: flex-shrink:0 keeps footer pinned */
 .cs-sbfoot{padding:10px 12px;border-top:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:9px;flex-shrink:0;background:#15131a}
 
-/* MAIN CHAT: flex column, strict height */
-.cs-main{flex:1;min-width:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#1B181D 0%,#181519 100%);overflow:hidden}
+.cs-medium-nav{display:none;flex-direction:column;align-items:center;gap:4px;padding:8px 0;flex:1;min-height:0;overflow:hidden}
+.cs-nav-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;position:relative;flex-shrink:0}
+.cs-nav-icon.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
+.cs-nav-badge{position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#FF8E80;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600}
+
+.cs-main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#1B181D 0%,#181519 100%);overflow:hidden}
 .cs-chathead{padding:11px 22px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
 .cs-chathead-sev{font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(255,142,128,0.1);color:#FF8E80;border:0.5px solid rgba(255,142,128,0.3);font-weight:500;letter-spacing:0.3px;flex-shrink:0}
 .cs-chathead-title{font-size:13px;font-weight:500;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cs-chathead-meta{font-size:11px;color:#827C75;display:inline-flex;align-items:center;gap:4px;flex-shrink:0;white-space:nowrap}
 .cs-menu-btn{display:none}
-/* KEY FIX: min-height:0 so chat scroll can shrink */
-.cs-chat-scroll{flex:1;overflow-y:auto;padding:22px 22px 26px;min-height:0}
+.cs-chat-scroll{flex:1;min-height:0;overflow-y:auto;padding:22px 22px 26px}
 .cs-chat-inner{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
 .cs-msg{display:flex;gap:10px;animation:cs-fadein 0.35s ease both}
 .cs-msg.user{justify-content:flex-end}
@@ -96,7 +94,6 @@
 .cs-counter-item:first-child{padding-top:3px;border-top:none}
 .cs-counter-item strong{color:#F4BC65;font-weight:500}
 .cs-panel-hint{background:rgba(192,170,255,0.06);border:0.5px solid rgba(192,170,255,0.2);border-radius:8px;padding:7px 11px;font-size:11.5px;color:#C0AAFF;display:inline-flex;align-items:center;gap:6px;width:fit-content}
-/* KEY FIX: flex-shrink:0 keeps input pinned */
 .cs-input-area{padding:11px 22px 15px;border-top:0.5px solid rgba(255,255,255,0.06);background:#1B181D;flex-shrink:0}
 .cs-input-inner{max-width:680px;margin:0 auto}
 .cs-input-box{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#252127;border:0.5px solid rgba(255,255,255,0.12);border-radius:13px}
@@ -104,31 +101,22 @@
 .cs-input-btn{width:27px;height:27px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;flex-shrink:0}
 .cs-input-send{background:#C0AAFF;color:#1B181D}
 
-/* ACTIVITY PANEL: flex column, strict height */
-.cs-right{flex-shrink:0;width:0;overflow:hidden;transition:width 0.45s cubic-bezier(0.32,0.72,0,1),border-color 0.45s;background:#1f1c22;border-left:0.5px solid rgba(255,255,255,0)}
+.cs-right{flex-shrink:0;width:0;overflow:hidden;transition:width 0.45s cubic-bezier(0.32,0.72,0,1),border-color 0.45s;border-left:0.5px solid rgba(255,255,255,0);background:#1f1c22;display:flex;flex-direction:column}
 .cs-right.open{border-left-color:rgba(255,255,255,0.06)}
-.cs-right-inner{width:280px;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.cs-right-inner{width:280px;flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
 .cs-right-head{padding:11px 14px;border-bottom:0.5px solid rgba(255,255,255,0.06);font-size:11.5px;font-weight:500;display:flex;align-items:center;gap:7px;letter-spacing:0.3px;flex-shrink:0}
-/* KEY FIX: min-height:0 on the feed scroll area */
-.cs-feed-scroll{flex:1;overflow-y:auto;padding:5px 0;min-height:0}
+.cs-feed-scroll{flex:1;min-height:0;overflow-y:auto;padding:5px 0}
 .cs-feed-entry{padding:9px 13px;display:flex;gap:9px;font-size:11.5px}
 .cs-feed-entry.aged{opacity:0.55}
 .cs-feed-icon{flex-shrink:0;width:16px;height:16px;display:flex;align-items:center;justify-content:center;color:#C0AAFF}
 .cs-feed-time{font-size:10.5px;color:#827C75;margin-top:2px;font-family:monospace}
-/* KEY FIX: flex-shrink:0 keeps right footer pinned */
 .cs-right-foot{padding:11px 14px;border-top:0.5px solid rgba(255,255,255,0.06);font-size:12.5px;color:#C0AAFF;display:flex;justify-content:space-between;align-items:center;background:rgba(192,170,255,0.08);cursor:pointer;flex-shrink:0}
 
-/* MEDIUM mode sidebar */
-.cs-medium-nav{display:none;flex-direction:column;align-items:center;gap:4px;padding:8px 0;flex:1;overflow:hidden}
-.cs-nav-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;font-size:18px;position:relative;flex-shrink:0}
-.cs-nav-icon.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
-.cs-nav-badge{position:absolute;top:4px;right:4px;width:14px;height:14px;border-radius:50%;background:#FF8E80;color:#fff;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:600}
 .cs-toolbtn{width:27px;height:27px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;color:#827C75;cursor:pointer;flex-shrink:0;transition:background 0.15s}
 .cs-toolbtn:hover{background:rgba(255,255,255,0.05);color:#C5BFB9}
 .cs-toolbtn.active{background:rgba(192,170,255,0.14);color:#C0AAFF}
 .cs-avatar-user{width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,#F4BC65,#D89020);display:flex;align-items:center;justify-content:center;color:#1B181D;font-size:11px;font-weight:500;flex-shrink:0}
 
-/* BREAKPOINT: medium */
 .cs-frame.cs-medium .cs-sidebar{width:58px}
 .cs-frame.cs-medium .cs-sbhead{justify-content:center;padding:11px}
 .cs-frame.cs-medium .cs-sbname,.cs-frame.cs-medium .cs-sbsub,.cs-frame.cs-medium .cs-search-bar,.cs-frame.cs-medium .cs-filters,.cs-frame.cs-medium .cs-incidents,.cs-frame.cs-medium .cs-sbfoot-text{display:none}
@@ -137,15 +125,13 @@
 .cs-frame.cs-medium .cs-chathead-meta{display:none}
 .cs-frame.cs-medium .cs-right-inner{width:250px}
 .cs-frame.cs-medium .cs-right.open{width:250px}
-/* BREAKPOINT: compact */
 .cs-frame.cs-compact .cs-sidebar{width:0}
 .cs-frame.cs-compact .cs-sidebar.drawer-open{width:280px;position:absolute;top:0;bottom:0;left:0;z-index:30;box-shadow:4px 0 28px rgba(0,0,0,0.6)}
 .cs-frame.cs-compact .cs-overlay{display:block}
-.cs-frame.cs-compact .cs-right.open{position:absolute;top:0;bottom:0;right:0;z-index:20;box-shadow:-4px 0 24px rgba(0,0,0,0.5)}
+.cs-frame.cs-compact .cs-right.open{position:absolute;top:0;bottom:0;right:0;z-index:20;box-shadow:-4px 0 24px rgba(0,0,0,0.5);display:flex;flex-direction:column}
 .cs-frame.cs-compact .cs-menu-btn{display:inline-flex}
 .cs-frame.cs-compact .cs-chathead-meta{display:none}
 .cs-frame.cs-compact .cs-chat-inner{max-width:100%}
-/* BREAKPOINT: full */
 .cs-frame.cs-full .cs-right.open{width:280px}
 </style>
 
@@ -176,26 +162,19 @@
 </defs></svg>
 
 <div class="cs-frame" id="cs-frame">
-<div class="cs-app">
-
   <div class="cs-winbar"><span>SecOps</span></div>
-
   <div class="cs-body">
     <div class="cs-overlay" id="cs-overlay" onclick="csCloseAll()"></div>
-
     <aside class="cs-sidebar" id="cs-sidebar">
       <div class="cs-sbhead">
         <div class="cs-brand"><svg class="cs-icon" style="width:15px;height:15px;color:#1B181D"><use href="#i-shield"/></svg></div>
-        <div style="flex:1;min-width:0">
-          <div class="cs-sbname" style="font-size:13px;font-weight:500">SecOps</div>
-          <div class="cs-sbsub" style="font-size:11px;color:#827C75;margin-top:1px">Tier 2 console</div>
-        </div>
+        <div style="flex:1;min-width:0"><div class="cs-sbname" style="font-size:13px;font-weight:500">SecOps</div><div class="cs-sbsub" style="font-size:11px;color:#827C75;margin-top:1px">Tier 2 console</div></div>
       </div>
       <div class="cs-medium-nav">
-        <div class="cs-nav-icon active" title="Incidents"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-incidents"/></svg><span class="cs-nav-badge">3</span></div>
-        <div class="cs-nav-icon" title="Search"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-search"/></svg></div>
-        <div class="cs-nav-icon" title="Reports"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-chart"/></svg></div>
-        <div class="cs-nav-icon" title="Runbooks"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-book"/></svg></div>
+        <div class="cs-nav-icon active"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-incidents"/></svg><span class="cs-nav-badge">3</span></div>
+        <div class="cs-nav-icon"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-search"/></svg></div>
+        <div class="cs-nav-icon"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-chart"/></svg></div>
+        <div class="cs-nav-icon"><svg class="cs-icon-stroke" style="width:20px;height:20px"><use href="#i-book"/></svg></div>
       </div>
       <div class="cs-search-bar"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-search"/></svg><span style="flex:1;font-style:italic">Search incidents...</span><span class="cs-mono" style="padding:1px 5px;background:#2E2A32;border:0.5px solid rgba(255,255,255,0.08);border-radius:4px;font-size:10.5px;color:#827C75">⌘K</span></div>
       <div class="cs-filters"><span class="cs-filter active">All · 6</span><span class="cs-filter">Active · 3</span><span class="cs-filter">Resolved</span></div>
@@ -209,14 +188,10 @@
       </div>
       <div class="cs-sbfoot">
         <div class="cs-avatar-user">JL</div>
-        <div class="cs-sbfoot-text" style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:500">J. Lee</div>
-          <div style="font-size:10.5px;color:#827C75">on-call · 2 active</div>
-        </div>
+        <div class="cs-sbfoot-text" style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500">J. Lee</div><div style="font-size:10.5px;color:#827C75">on-call · 2 active</div></div>
         <div class="cs-toolbtn" style="margin-left:auto"><svg class="cs-icon-stroke" style="width:14px;height:14px"><use href="#i-settings"/></svg></div>
       </div>
     </aside>
-
     <main class="cs-main">
       <div class="cs-chathead">
         <div class="cs-toolbtn cs-menu-btn" onclick="csOpenSidebar()"><svg class="cs-icon-stroke" style="width:16px;height:16px"><use href="#i-menu"/></svg></div>
@@ -229,109 +204,34 @@
           <div class="cs-toolbtn"><svg class="cs-icon" style="width:15px;height:15px"><use href="#i-dots"/></svg></div>
         </div>
       </div>
-
       <div class="cs-chat-scroll" id="cs-scroll">
         <div class="cs-chat-inner">
-
           <div class="cs-msg" id="msg-1">
             <div class="cs-ai-avatar"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-sparkle"/></svg></div>
             <div class="cs-msg-body">
               <div class="cs-msg-text"><span class="num">247 MB</span> exfiltrated from <strong>fileserver-03</strong> since 14:14 and climbing. Source is <strong>n.zuk's</strong> account, originating from a Tor exit node first seen in our logs today.</div>
-              <div class="cs-card">
-                <div class="cs-chart-head"><span class="cs-chart-label">Outbound TLS to suspicious endpoint</span><span class="cs-chart-val">247 MB <span class="cs-live"></span></span></div>
-                <svg viewBox="0 0 700 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100px;display:block">
-                  <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF8E80" stop-opacity="0.4"/><stop offset="100%" stop-color="#FF8E80" stop-opacity="0"/></linearGradient></defs>
-                  <line x1="20" y1="82" x2="680" y2="82" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-                  <text x="20" y="95" font-size="10" fill="#827C75" font-family="ui-sans-serif">14:14</text><text x="680" y="95" font-size="10" fill="#827C75" font-family="ui-sans-serif" text-anchor="end">14:20</text>
-                  <path d="M 20 82 Q 100 80 130 77 Q 200 71 240 62 Q 310 49 350 36 Q 420 18 460 12 Q 530 8 570 10 Q 640 13 680 14 L 680 82 L 20 82 Z" fill="url(#cg)"/>
-                  <path d="M 20 82 Q 100 80 130 77 Q 200 71 240 62 Q 310 49 350 36 Q 420 18 460 12 Q 530 8 570 10 Q 640 13 680 14" fill="none" stroke="#FF8E80" stroke-width="2"/>
-                  <circle cx="680" cy="14" r="5" fill="#FF8E80" stroke="#1B181D" stroke-width="2"/>
-                </svg>
-              </div>
-              <div class="cs-card" style="padding:11px 13px">
-                <div style="font-size:11px;color:#827C75;letter-spacing:0.3px;margin-bottom:9px">Attack path</div>
-                <svg viewBox="0 0 700 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
-                  <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#FF8E80"/></marker></defs>
-                  <rect x="0" y="14" width="146" height="42" rx="8" fill="rgba(255,142,128,0.1)" stroke="rgba(255,142,128,0.4)" stroke-width="0.5"/><text x="73" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">185.220.xxx</text><text x="73" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" opacity="0.8" font-family="ui-sans-serif">Tor exit · external</text>
-                  <line x1="152" y1="35" x2="196" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="174" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">SSH</text>
-                  <rect x="202" y="14" width="116" height="42" rx="8" fill="rgba(244,188,101,0.12)" stroke="rgba(244,188,101,0.4)" stroke-width="0.5"/><text x="260" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FCD89A" font-family="ui-sans-serif">n.zuk</text><text x="260" y="47" text-anchor="middle" font-size="9.5" fill="#F4BC65" opacity="0.8" font-family="ui-sans-serif">user account</text>
-                  <line x1="324" y1="35" x2="368" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="346" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">SMB</text>
-                  <rect x="374" y="14" width="140" height="42" rx="8" fill="rgba(255,142,128,0.1)" stroke="rgba(255,142,128,0.4)" stroke-width="0.5"/><text x="444" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">fileserver-03</text><text x="444" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" opacity="0.8" font-family="ui-sans-serif">finance share</text>
-                  <line x1="520" y1="35" x2="564" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="542" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">TLS</text>
-                  <rect x="570" y="14" width="130" height="42" rx="8" fill="rgba(255,142,128,0.15)" stroke="rgba(255,142,128,0.6)" stroke-width="0.5"/><text x="635" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">External endpoint</text><text x="635" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">live · receiving</text>
-                </svg>
-              </div>
+              <div class="cs-card"><div class="cs-chart-head"><span class="cs-chart-label">Outbound TLS to suspicious endpoint</span><span class="cs-chart-val">247 MB <span class="cs-live"></span></span></div><svg viewBox="0 0 700 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100px;display:block"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FF8E80" stop-opacity="0.4"/><stop offset="100%" stop-color="#FF8E80" stop-opacity="0"/></linearGradient></defs><line x1="20" y1="82" x2="680" y2="82" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/><text x="20" y="95" font-size="10" fill="#827C75" font-family="ui-sans-serif">14:14</text><text x="680" y="95" font-size="10" fill="#827C75" font-family="ui-sans-serif" text-anchor="end">14:20</text><path d="M 20 82 Q 100 80 130 77 Q 200 71 240 62 Q 310 49 350 36 Q 420 18 460 12 Q 530 8 570 10 Q 640 13 680 14 L 680 82 L 20 82 Z" fill="url(#cg)"/><path d="M 20 82 Q 100 80 130 77 Q 200 71 240 62 Q 310 49 350 36 Q 420 18 460 12 Q 530 8 570 10 Q 640 13 680 14" fill="none" stroke="#FF8E80" stroke-width="2"/><circle cx="680" cy="14" r="5" fill="#FF8E80" stroke="#1B181D" stroke-width="2"/></svg></div>
+              <div class="cs-card" style="padding:11px 13px"><div style="font-size:11px;color:#827C75;letter-spacing:0.3px;margin-bottom:9px">Attack path</div><svg viewBox="0 0 700 70" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block"><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#FF8E80"/></marker></defs><rect x="0" y="14" width="146" height="42" rx="8" fill="rgba(255,142,128,0.1)" stroke="rgba(255,142,128,0.4)" stroke-width="0.5"/><text x="73" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">185.220.xxx</text><text x="73" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" opacity="0.8" font-family="ui-sans-serif">Tor exit · external</text><line x1="152" y1="35" x2="196" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="174" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">SSH</text><rect x="202" y="14" width="116" height="42" rx="8" fill="rgba(244,188,101,0.12)" stroke="rgba(244,188,101,0.4)" stroke-width="0.5"/><text x="260" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FCD89A" font-family="ui-sans-serif">n.zuk</text><text x="260" y="47" text-anchor="middle" font-size="9.5" fill="#F4BC65" opacity="0.8" font-family="ui-sans-serif">user account</text><line x1="324" y1="35" x2="368" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="346" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">SMB</text><rect x="374" y="14" width="140" height="42" rx="8" fill="rgba(255,142,128,0.1)" stroke="rgba(255,142,128,0.4)" stroke-width="0.5"/><text x="444" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">fileserver-03</text><text x="444" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" opacity="0.8" font-family="ui-sans-serif">finance share</text><line x1="520" y1="35" x2="564" y2="35" stroke="#FF8E80" stroke-width="2" marker-end="url(#arr)"/><text x="542" y="28" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">TLS</text><rect x="570" y="14" width="130" height="42" rx="8" fill="rgba(255,142,128,0.15)" stroke="rgba(255,142,128,0.6)" stroke-width="0.5"/><text x="635" y="32" text-anchor="middle" font-size="11" font-weight="500" fill="#FFB4AA" font-family="ui-sans-serif">External endpoint</text><text x="635" y="47" text-anchor="middle" font-size="9.5" fill="#FF8E80" font-family="ui-sans-serif">live · receiving</text></svg></div>
               <div class="cs-msg-text"><span class="pop">82%</span> confident the credentials are stolen. Recommend isolating fileserver-03 before remediating the account — the bytes counter is the bigger problem right now.</div>
-              <div class="cs-actions">
-                <div class="cs-action cs-action-urgent"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-db-bolt"/></svg>Isolate fileserver-03</div>
-                <div class="cs-action cs-action-sec"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-key"/></svg>Reset n.zuk password</div>
-              </div>
-              <div class="cs-suggestions">
-                <div class="cs-sug primary" id="t1" onclick="csTriggerConfidence()">Why are you confident?</div>
-                <div class="cs-sug">Show me the timeline</div>
-                <div class="cs-sug">What's the alternative?</div>
-                <div class="cs-sug">Who else accesses this host?</div>
-              </div>
+              <div class="cs-actions"><div class="cs-action cs-action-urgent"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-db-bolt"/></svg>Isolate fileserver-03</div><div class="cs-action cs-action-sec"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-key"/></svg>Reset n.zuk password</div></div>
+              <div class="cs-suggestions"><div class="cs-sug primary" id="t1" onclick="csTriggerConfidence()">Why are you confident?</div><div class="cs-sug">Show me the timeline</div><div class="cs-sug">What's the alternative?</div><div class="cs-sug">Who else accesses this host?</div></div>
             </div>
           </div>
-
           <div class="cs-msg user hidden" id="mu1"><div class="cs-user-msg">Why are you confident?</div></div>
-          <div class="cs-msg hidden" id="sk1">
-            <div style="flex-shrink:0;width:26px;height:26px;border-radius:50%" class="cs-skel"></div>
-            <div style="flex:1;display:flex;flex-direction:column;gap:9px;padding-top:2px">
-              <div class="cs-skel" style="height:13px;width:88%"></div><div class="cs-skel" style="height:13px;width:64%"></div>
-              <div class="cs-skel" style="height:90px;width:100%;border-radius:9px"></div>
-              <div class="cs-skel" style="height:13px;width:78%"></div><div class="cs-skel" style="height:13px;width:50%"></div>
-            </div>
-          </div>
+          <div class="cs-msg hidden" id="sk1"><div style="flex-shrink:0;width:26px;height:26px;border-radius:50%" class="cs-skel"></div><div style="flex:1;display:flex;flex-direction:column;gap:9px;padding-top:2px"><div class="cs-skel" style="height:13px;width:88%"></div><div class="cs-skel" style="height:13px;width:64%"></div><div class="cs-skel" style="height:90px;width:100%;border-radius:9px"></div><div class="cs-skel" style="height:13px;width:78%"></div><div class="cs-skel" style="height:13px;width:50%"></div></div></div>
           <div class="cs-msg hidden" id="ma2">
             <div class="cs-ai-avatar"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-sparkle"/></svg></div>
             <div class="cs-msg-body">
               <div class="cs-msg-text">Three indicators.</div>
-              <div style="display:flex;flex-direction:column;gap:7px">
-                <div class="cs-ev-row"><div class="cs-ev-num">1</div><div class="cs-ev-text"><strong>Origin.</strong> <span class="num">185.220.xxx</span> is a Tor exit node. No prior appearance in our logs.</div></div>
-                <div class="cs-ev-row"><div class="cs-ev-num">2</div><div class="cs-ev-text"><strong>Time of day.</strong> 14:08 UTC is 22:08 local. n.zuk has 47 prior accesses to this host — all during business hours.</div></div>
-              </div>
-              <div class="cs-card" style="padding:11px">
-                <div style="font-size:11px;color:#827C75;letter-spacing:0.3px;margin-bottom:8px">n.zuk's 90-day access history · hour of day</div>
-                <svg viewBox="0 0 660 86" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block">
-                  <line x1="20" y1="60" x2="640" y2="60" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
-                  <rect x="250" y="12" width="200" height="48" fill="rgba(192,170,255,0.06)"/>
-                  <text x="350" y="26" font-size="10" fill="#C0AAFF" text-anchor="middle" font-family="ui-sans-serif" font-style="italic">business hours</text>
-                  <text x="20" y="76" font-size="10" fill="#827C75" font-family="ui-sans-serif">00:00</text><text x="350" y="76" font-size="10" fill="#827C75" text-anchor="middle" font-family="ui-sans-serif">12:00</text><text x="640" y="76" font-size="10" fill="#827C75" text-anchor="end" font-family="ui-sans-serif">23:59</text>
-                  <g fill="#C5BFB9" opacity="0.5"><circle cx="262" cy="52" r="2.5"/><circle cx="278" cy="46" r="2.5"/><circle cx="292" cy="54" r="2.5"/><circle cx="308" cy="50" r="2.5"/><circle cx="324" cy="42" r="2.5"/><circle cx="336" cy="52" r="2.5"/><circle cx="350" cy="46" r="2.5"/><circle cx="364" cy="54" r="2.5"/><circle cx="378" cy="48" r="2.5"/><circle cx="392" cy="52" r="2.5"/><circle cx="268" cy="42" r="2.5"/><circle cx="288" cy="56" r="2.5"/><circle cx="304" cy="44" r="2.5"/><circle cx="318" cy="54" r="2.5"/><circle cx="338" cy="42" r="2.5"/><circle cx="362" cy="50" r="2.5"/><circle cx="376" cy="46" r="2.5"/><circle cx="394" cy="50" r="2.5"/><circle cx="410" cy="44" r="2.5"/><circle cx="430" cy="48" r="2.5"/></g>
-                  <circle cx="556" cy="30" r="5.5" fill="#FF8E80" stroke="#1B181D" stroke-width="2"/>
-                  <text x="556" y="16" font-size="10" fill="#FF8E80" text-anchor="middle" font-family="ui-sans-serif" font-weight="500">today · 22:08</text>
-                </svg>
-              </div>
+              <div style="display:flex;flex-direction:column;gap:7px"><div class="cs-ev-row"><div class="cs-ev-num">1</div><div class="cs-ev-text"><strong>Origin.</strong> <span class="num">185.220.xxx</span> is a Tor exit node. No prior appearance in our logs.</div></div><div class="cs-ev-row"><div class="cs-ev-num">2</div><div class="cs-ev-text"><strong>Time of day.</strong> 14:08 UTC is 22:08 local. n.zuk has 47 prior accesses to this host — all during business hours.</div></div></div>
+              <div class="cs-card" style="padding:11px"><div style="font-size:11px;color:#827C75;letter-spacing:0.3px;margin-bottom:8px">n.zuk's 90-day access history · hour of day</div><svg viewBox="0 0 660 86" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;display:block"><line x1="20" y1="60" x2="640" y2="60" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/><rect x="250" y="12" width="200" height="48" fill="rgba(192,170,255,0.06)"/><text x="350" y="26" font-size="10" fill="#C0AAFF" text-anchor="middle" font-family="ui-sans-serif" font-style="italic">business hours</text><text x="20" y="76" font-size="10" fill="#827C75" font-family="ui-sans-serif">00:00</text><text x="350" y="76" font-size="10" fill="#827C75" text-anchor="middle" font-family="ui-sans-serif">12:00</text><text x="640" y="76" font-size="10" fill="#827C75" text-anchor="end" font-family="ui-sans-serif">23:59</text><g fill="#C5BFB9" opacity="0.5"><circle cx="262" cy="52" r="2.5"/><circle cx="278" cy="46" r="2.5"/><circle cx="292" cy="54" r="2.5"/><circle cx="308" cy="50" r="2.5"/><circle cx="324" cy="42" r="2.5"/><circle cx="336" cy="52" r="2.5"/><circle cx="350" cy="46" r="2.5"/><circle cx="364" cy="54" r="2.5"/><circle cx="378" cy="48" r="2.5"/><circle cx="392" cy="52" r="2.5"/><circle cx="268" cy="42" r="2.5"/><circle cx="288" cy="56" r="2.5"/><circle cx="304" cy="44" r="2.5"/><circle cx="318" cy="54" r="2.5"/><circle cx="338" cy="42" r="2.5"/><circle cx="362" cy="50" r="2.5"/><circle cx="376" cy="46" r="2.5"/><circle cx="394" cy="50" r="2.5"/><circle cx="410" cy="44" r="2.5"/><circle cx="430" cy="48" r="2.5"/></g><circle cx="556" cy="30" r="5.5" fill="#FF8E80" stroke="#1B181D" stroke-width="2"/><text x="556" y="16" font-size="10" fill="#FF8E80" text-anchor="middle" font-family="ui-sans-serif" font-weight="500">today · 22:08</text></svg></div>
               <div class="cs-ev-row"><div class="cs-ev-num">3</div><div class="cs-ev-text"><strong>Volume and speed.</strong> <span class="num">18 MB</span> read in 4 seconds. Their typical sessions read &lt; 50 MB across hours.</div></div>
-              <div class="cs-counter" id="c1">
-                <div class="cs-counter-head" onclick="csToggleCounter('c1')">
-                  <svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-warning"/></svg>
-                  <span>2 signals run counter to this read</span>
-                  <span class="cs-counter-chev"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-chevron"/></svg></span>
-                </div>
-                <div class="cs-counter-body"><div class="cs-counter-inner">
-                  <div class="cs-counter-item"><strong>MFA passed cleanly at 14:03.</strong> Session tokens persist after MFA, so a hijacked post-MFA session would look identical.</div>
-                  <div class="cs-counter-item"><strong>47 prior accesses to fileserver-03.</strong> A baseline exists, but today's pattern doesn't match on volume, time of day, or paths touched.</div>
-                </div></div>
-              </div>
-              <div class="cs-suggestions">
-                <div class="cs-sug primary" id="t2" onclick="csTriggerActivity()">What else are you checking?</div>
-                <div class="cs-sug">Show the raw log</div>
-                <div class="cs-sug">Compare to INC-2691</div>
-                <div class="cs-sug">What if I'm wrong?</div>
-              </div>
+              <div class="cs-counter" id="c1"><div class="cs-counter-head" onclick="csToggleCounter('c1')"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-warning"/></svg><span>2 signals run counter to this read</span><span class="cs-counter-chev"><svg class="cs-icon-stroke" style="width:13px;height:13px"><use href="#i-chevron"/></svg></span></div><div class="cs-counter-body"><div class="cs-counter-inner"><div class="cs-counter-item"><strong>MFA passed cleanly at 14:03.</strong> Session tokens persist after MFA, so a hijacked post-MFA session would look identical.</div><div class="cs-counter-item"><strong>47 prior accesses to fileserver-03.</strong> A baseline exists, but today's pattern doesn't match on volume, time of day, or paths touched.</div></div></div></div>
+              <div class="cs-suggestions"><div class="cs-sug primary" id="t2" onclick="csTriggerActivity()">What else are you checking?</div><div class="cs-sug">Show the raw log</div><div class="cs-sug">Compare to INC-2691</div><div class="cs-sug">What if I'm wrong?</div></div>
             </div>
           </div>
-
           <div class="cs-msg user hidden" id="mu2"><div class="cs-user-msg">What else are you checking?</div></div>
-          <div class="cs-msg hidden" id="sk2">
-            <div style="flex-shrink:0;width:26px;height:26px;border-radius:50%" class="cs-skel"></div>
-            <div style="flex:1;display:flex;flex-direction:column;gap:9px;padding-top:2px">
-              <div class="cs-skel" style="height:13px;width:90%"></div><div class="cs-skel" style="height:13px;width:72%"></div><div class="cs-skel" style="height:13px;width:55%"></div>
-            </div>
-          </div>
+          <div class="cs-msg hidden" id="sk2"><div style="flex-shrink:0;width:26px;height:26px;border-radius:50%" class="cs-skel"></div><div style="flex:1;display:flex;flex-direction:column;gap:9px;padding-top:2px"><div class="cs-skel" style="height:13px;width:90%"></div><div class="cs-skel" style="height:13px;width:72%"></div><div class="cs-skel" style="height:13px;width:55%"></div></div></div>
           <div class="cs-msg hidden" id="ma3">
             <div class="cs-ai-avatar"><svg class="cs-icon" style="width:13px;height:13px"><use href="#i-sparkle"/></svg></div>
             <div class="cs-msg-body">
@@ -339,10 +239,8 @@
               <div class="cs-panel-hint"><svg class="cs-icon-stroke" style="width:12px;height:12px"><use href="#i-panel"/></svg><span>Activity panel opened</span></div>
             </div>
           </div>
-
         </div>
       </div>
-
       <div class="cs-input-area">
         <div class="cs-input-inner">
           <div class="cs-input-box">
@@ -355,7 +253,6 @@
         </div>
       </div>
     </main>
-
     <aside class="cs-right" id="cs-right">
       <div class="cs-right-inner">
         <div class="cs-right-head"><span class="cs-live cs-live-ok"></span>Activity<span style="margin-left:auto;color:#827C75;font-weight:400">live</span></div>
@@ -371,9 +268,7 @@
         <div class="cs-right-foot"><span style="display:inline-flex;align-items:center;gap:6px"><svg class="cs-icon-stroke" style="width:14px;height:14px"><use href="#i-notes"/></svg>Investigation draft</span><svg class="cs-icon-stroke" style="width:12px;height:12px"><use href="#i-arrow-right"/></svg></div>
       </div>
     </aside>
-
   </div>
-</div>
 </div>
 
 <script>
@@ -386,28 +281,21 @@
     frame.classList.toggle('cs-full',w>=1060);
     const r=document.getElementById('cs-right');
     if(r.classList.contains('open')){
-      if(w<720) r.style.width='';
-      else if(w<1060) r.style.width='250px';
+      if(w<720)r.style.width='';
+      else if(w<1060)r.style.width='250px';
       else r.style.width='280px';
     }
   }
   new ResizeObserver(applyBP).observe(frame);
   applyBP();
-
   function scrollDown(){const s=document.getElementById('cs-scroll');if(s)s.scrollTop=s.scrollHeight}
   window.csOpenSidebar=function(){document.getElementById('cs-sidebar').classList.add('drawer-open');document.getElementById('cs-overlay').classList.add('active')};
   window.csCloseAll=function(){document.getElementById('cs-sidebar').classList.remove('drawer-open');document.getElementById('cs-overlay').classList.remove('active')};
   window.csTogglePanel=function(){
     const p=document.getElementById('cs-right'),b=document.getElementById('cs-panel-btn'),opening=!p.classList.contains('open');
     p.classList.toggle('open');b.classList.toggle('active',p.classList.contains('open'));
-    if(opening){
-      const w=frame.offsetWidth;
-      p.style.width=w>=1060?'280px':w>=720?'250px':'';
-      if(w<720)document.getElementById('cs-overlay').classList.add('active');
-    } else {
-      p.style.width='';
-      if(frame.classList.contains('cs-compact'))document.getElementById('cs-overlay').classList.remove('active');
-    }
+    if(opening){const w=frame.offsetWidth;p.style.width=w>=1060?'280px':w>=720?'250px':'';if(w<720)document.getElementById('cs-overlay').classList.add('active');}
+    else{p.style.width='';if(frame.classList.contains('cs-compact'))document.getElementById('cs-overlay').classList.remove('active');}
   };
   window.csToggleCounter=function(id){document.getElementById(id).classList.toggle('expanded')};
   window.csTriggerConfidence=function(){
@@ -425,8 +313,7 @@
       setTimeout(function(){
         const p=document.getElementById('cs-right'),b=document.getElementById('cs-panel-btn');
         p.classList.add('open');b.classList.add('active');
-        const w=frame.offsetWidth;
-        p.style.width=w>=1060?'280px':w>=720?'250px':'';
+        const w=frame.offsetWidth;p.style.width=w>=1060?'280px':w>=720?'250px':'';
         if(w<720)document.getElementById('cs-overlay').classList.add('active');
       },900);
     },1400);
